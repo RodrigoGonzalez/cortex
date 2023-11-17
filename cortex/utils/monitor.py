@@ -100,7 +100,7 @@ class SimpleMonitor(object):
             ax = axes[j // x, j % x]
             ax.plot(v, label=k)
             if k in self.d_valid.keys():
-                ax.plot(self.d_valid[k], label=k + '(valid)')
+                ax.plot(self.d_valid[k], label=f'{k}(valid)')
             ax.set_title(k)
             ax.legend()
 

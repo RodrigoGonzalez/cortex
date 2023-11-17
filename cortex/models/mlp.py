@@ -84,16 +84,11 @@ class MLP(Layer):
             self.dim_out = dim_out * self.distribution.scale
 
         if dim_h is None:
-            if dim_hs is None:
-                dim_hs = []
-            else:
-                dim_hs = [dim_h for dim_h in dim_hs]
+            dim_hs = [] if dim_hs is None else list(dim_hs)
             assert n_layers is None
         else:
             assert dim_hs is None
-            dim_hs = []
-            for l in xrange(n_layers - 1):
-                dim_hs.append(dim_h)
+            dim_hs = [dim_h for _ in xrange(n_layers - 1)]
         dim_hs.append(self.dim_out)
         self.dim_hs = dim_hs
         self.n_layers = len(dim_hs)
@@ -212,10 +207,7 @@ class MLP(Layer):
         self.params = OrderedDict()
 
         for l in xrange(self.n_layers):
-            if l == 0:
-                dim_in = self.dim_in
-            else:
-                dim_in = self.dim_hs[l-1]
+            dim_in = self.dim_in if l == 0 else self.dim_hs[l-1]
             dim_out = self.dim_hs[l]
 
             W = norm_weight(dim_in, dim_out,
@@ -294,8 +286,7 @@ class MLP(Layer):
 
         '''
         params = self.get_params()
-        outs = self.step_call(x, *params)
-        return outs
+        return self.step_call(x, *params)
 
     def feed(self, x):
         '''Simple feed function.

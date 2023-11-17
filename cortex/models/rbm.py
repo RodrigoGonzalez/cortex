@@ -271,8 +271,14 @@ class RBM(Layer):
             updates = theano.OrderedUpdates()
         else:
             (hs, vs, phs, pvs), updates = scan(
-                self.step_gibbs, seqs, outputs_info, non_seqs, n_steps,
-                name=self.name+'_sample', strict=False)
+                self.step_gibbs,
+                seqs,
+                outputs_info,
+                non_seqs,
+                n_steps,
+                name=f'{self.name}_sample',
+                strict=False,
+            )
 
         results = OrderedDict(vs=vs, hs=hs, pvs=pvs, phs=phs)
 
@@ -320,9 +326,7 @@ class RBM(Layer):
             dtype=floatX)
 
         h, ph = self.step_sh_v(r, x, *self.get_params())
-        pv = self.step_pv_h(h, *self.get_params())
-
-        return pv
+        return self.step_pv_h(h, *self.get_params())
 
     def estimate_nll(self, X):
         '''Estimate the :math:`-\log p(x)` using the estimate of :math:`log_Z`.
@@ -478,8 +482,14 @@ class RBM(Layer):
         non_seqs     = params
 
         (log_ws, xs), updates = scan(
-            step_anneal, seqs, outputs_info, non_seqs, K,
-            name=self.name + '_ais', strict=False)
+            step_anneal,
+            seqs,
+            outputs_info,
+            non_seqs,
+            K,
+            name=f'{self.name}_ais',
+            strict=False,
+        )
 
         log_w  = log_ws[-1]
         d_logz = T.log(T.sum(T.exp(log_w - log_w.max()))) + log_w.max() - T.log(M)
@@ -507,8 +517,7 @@ class RBM(Layer):
         vis_term = beta * self.v_dist.get_energy_bias(x, *v_params)
         x = self.v_dist.scale_for_energy_model(x, *v_params)
         hid_act = beta * (T.dot(x, W) + self.h_dist.get_center(*h_params))
-        fe = -vis_term - T.log(1. + T.exp(hid_act)).sum(axis=1)
-        return fe
+        return -vis_term - T.log(1. + T.exp(hid_act)).sum(axis=1)
 
     def step_free_energy_h(self, h, beta, *params):
         '''Step free energy function for hidden states.
@@ -527,8 +536,7 @@ class RBM(Layer):
         hid_term = beta * self.h_dist.get_energy_bias(h, *h_params)
         h = self.h_dist.scale_for_energy_model(h, *h_params)
         vis_act = beta * (T.dot(h, W.T) + self.v_dist.get_center(*v_params))
-        fe = -hid_term - T.log(1. + T.exp(vis_act)).sum(axis=1)
-        return fe
+        return -hid_term - T.log(1. + T.exp(vis_act)).sum(axis=1)
 
     def free_energy(self, x):
         '''Free energy function.

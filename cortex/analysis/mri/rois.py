@@ -63,7 +63,8 @@ def lat_opposite(side):
 
     if side == 'Right': return 'Left'
     elif side == 'Left': return 'Right'
-    else: raise ValueError('Lateral side error, (%s)' % side)
+    else:else
+        raise ValueError(f'Lateral side error, ({side})')
 
 def check_pair(toproi, rois, lr_cm):
     toproi_split = toproi.split(' ',1)
@@ -76,9 +77,8 @@ def check_pair(toproi, rois, lr_cm):
 
     if both:
         toproi = ' '.join(['(L+R)',toproi_split[1]])
-    else:
-        if abs(lr_cm) < 9:
-            toproi = toproi.split(' ',1)[1]
+    elif abs(lr_cm) < 9:
+        toproi = toproi.split(' ',1)[1]
 
     return toproi
 
@@ -97,7 +97,7 @@ def find_clusters_from_3D(fnifti, thr):
 
     '''
     if not path.isfile(fnifti):
-        raise IOError('%s not found' % fnifti)
+        raise IOError(f'{fnifti} not found')
 
     cmd = ('3dclust -1Dformat -quiet -nosum -2thresh -2 %.2f '
            '-dxyz=1 2 80 2>/dev/null %s' % (thr, fnifti))
@@ -105,15 +105,12 @@ def find_clusters_from_3D(fnifti, thr):
     field_strs = ['$%d' % i for i in fields]
     tab_str = '\"\\t\"'
     awk = 'awk \'{ print ' + tab_str.join(field_strs) + '}\''
-    cmdline = '%s | %s' % (cmd, awk)
+    cmdline = f'{cmd} | {awk}'
 
     proc = subprocess.Popen(cmdline, stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
-    if '#**' in out.split(): return []
-
-    cluster = [float(o) for o in out.split()]
-    return cluster
+    return [] if '#**' in out.split() else [float(o) for o in out.split()]
 
 def find_clusters_from_4D(fnifti, i, thr):
     '''Function to use afni command line to find clusters from a 4D nifti.
@@ -137,14 +134,11 @@ def find_clusters_from_4D(fnifti, i, thr):
            "-dxyz=1 2 80 2>/dev/null" %
            (i, i, thr))
     awk = "awk '{ print $1\"\t\"$2\"\t\"$3\"\t\"$4\"\t\"$5\"\t\"$6\"\t\"$11\"\t\"$14\"\t\"$15\"\t\"$16}'"
-    cmdline = cmd + " '%s'| " % fnifti + awk
+    cmdline = f"{cmd} '{fnifti}'| {awk}"
     proc = subprocess.Popen(cmdline, stdout=subprocess.PIPE, shell=True)
     (out, err) = proc.communicate()
 
-    if "#**" in out.split(): return []
-
-    clusters = float16(out.split())
-    return clusters
+    return [] if "#**" in out.split() else float16(out.split())
 
 def check_grey(coords):
     '''Function to check if a particular cluster corresponds to grey matter.
@@ -186,7 +180,11 @@ def return_region(coords, atlas):
             corresponding to a coordinate.
 
     '''
-    assert atlas in ['CA_N27_ML', 'CA_ML_18_MNIA', 'TT_Daemon'], 'Atlas %s not supported yet.' % atlas
+    assert atlas in [
+        'CA_N27_ML',
+        'CA_ML_18_MNIA',
+        'TT_Daemon',
+    ], f'Atlas {atlas} not supported yet.'
     assert len(coords) == 3
 
     # where am I command.
@@ -240,8 +238,8 @@ def get_cluster_info(clusters):
         cs = clusters[c * 10: (c+1) * 10]
         intensity_sum += abs(cs[0] * cs[6])
 
-        cm = tuple([cs[x] for x in [1, 2, 3]])
-        coords = tuple([cs[x] for x in [7, 8, 9]])
+        cm = tuple(cs[x] for x in [1, 2, 3])
+        coords = tuple(cs[x] for x in [7, 8, 9])
 
         rois = find_region_names(coords)
 #            grey_value = check_grey(coords)
@@ -318,9 +316,9 @@ def find_rois(fnifti, thr, test=False):
         p.join()
         roi_dict = dict(roi_dict)
     else:
-        raise NotImplementedError('Type %s not supported' % type(fnifti))
+        raise NotImplementedError(f'Type {type(fnifti)} not supported')
 
-    roi_dict = dict((k, v) for k, v in roi_dict.iteritems() if len(v) > 0)
+    roi_dict = {k: v for k, v in roi_dict.iteritems() if len(v) > 0}
 
     print('Finished. Found %d clusters' % len(roi_dict))
     return roi_dict

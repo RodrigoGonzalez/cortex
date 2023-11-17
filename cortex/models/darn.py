@@ -47,12 +47,10 @@ class AutoRegressor(Distribution):
 
     def get_prob(self, x, W, b):
         W = T.tril(W, k=-1)
-        p = T.nnet.sigmoid(T.dot(x, W) + b) * 0.9999 + 0.000005
-        return p
+        return T.nnet.sigmoid(T.dot(x, W) + b) * 0.9999 + 0.000005
 
     def get_L2_weight_cost(self, gamma):
-        cost = gamma * (self.W ** 2).sum()
-        return cost
+        return gamma * (self.W ** 2).sum()
 
     def sample(self, n_samples):
         '''
@@ -112,13 +110,12 @@ class DARN(Layer):
         if out_act is None:
             out_act = 'T.nnet.sigmoid'
 
-        if out_act == 'T.nnet.sigmoid':
-            self.f_sample = _binomial
-            self.f_neg_log_prob = _cross_entropy
-            self.f_entropy = _binary_entropy
-        else:
+        if out_act != 'T.nnet.sigmoid':
             raise ValueError()
 
+        self.f_sample = _binomial
+        self.f_neg_log_prob = _cross_entropy
+        self.f_entropy = _binary_entropy
         kwargs = init_weights(self, **kwargs)
         kwargs = init_rngs(self, **kwargs)
 
@@ -158,10 +155,7 @@ class DARN(Layer):
             p = p.T
             p = p.reshape((n_samples, p.shape[0] // n_samples, p.shape[1]))
 
-        if return_probs:
-            return p, updates
-        else:
-            return x, updates
+        return (p, updates) if return_probs else (x, updates)
 
     def step_neg_log_prob(self, x, c, War, bar):
         W = T.tril(War, k=-1)

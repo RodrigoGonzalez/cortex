@@ -74,7 +74,7 @@ def save_image(nifti, anat, cluster_dict, out_path, f, image_threshold=2,
     rc('font', **font)
 
     coords = cluster_dict['top_clust']['coords']
-    if coords == None:
+    if coords is None:
         return
 
     feature /= feature.std()

@@ -20,7 +20,7 @@ def complete_path(text, state):
     '''Completes a path for readline.
 
     '''
-    return (glob.glob(text + '*') + [None])[state]
+    return (glob.glob(f'{text}*') + [None])[state]
 
 
 def download_data(url, out_path):
@@ -37,7 +37,7 @@ def download_data(url, out_path):
     else:
         d = path.abspath(os.path.join(out_path, os.pardir))
         if not path.isdir(d):
-            raise IOError('Directory %s does not exist' % d)
+            raise IOError(f'Directory {d} does not exist')
         file_name = out_path
 
     u = urllib2.urlopen(url)
@@ -48,7 +48,7 @@ def download_data(url, out_path):
         file_size_dl = 0
         block_sz = 8192
 
-        widgets = ['Dowloading to %s (' % file_name, Timer(), '): ', Bar()]
+        widgets = [f'Dowloading to {file_name} (', Timer(), '): ', Bar()]
         pbar = ProgressBar(widgets=widgets, maxval=file_size).start()
 
         while True:
@@ -114,7 +114,7 @@ def query_yes_no(question, default='yes'):
     elif default == 'no':
         prompt = ' [y/N] '
     else:
-        raise ValueError('invalid default answer: `%s`' % default)
+        raise ValueError(f'invalid default answer: `{default}`')
 
     while True:
         sys.stdout.write(question + prompt)

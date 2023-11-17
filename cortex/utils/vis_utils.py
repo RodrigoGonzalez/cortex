@@ -88,17 +88,12 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                 out_array[:, :, i] = tile_raster_images(
                     X[i], img_shape, tile_shape, tile_spacing,
                     scale_rows_to_unit_interval, output_pixel_vals)
-        return out_array
-
     else:
         # if we are dealing with only one channel
         H, W = img_shape
         Hs, Ws = tile_spacing
 
-        # generate a matrix to store the output
-        dt = X.dtype
-        if output_pixel_vals:
-            dt = 'uint8'
+        dt = 'uint8' if output_pixel_vals else X.dtype
         out_array = numpy.zeros(out_shape, dtype=dt)
 
         for tile_row in xrange(tile_shape[0]):
@@ -122,4 +117,4 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                         tile_row * (H + Hs): tile_row * (H + Hs) + H,
                         tile_col * (W + Ws): tile_col * (W + Ws) + W
                         ] = this_img * c
-        return out_array
+    return out_array

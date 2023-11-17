@@ -189,9 +189,4 @@ class FMRI(FMRI_IID):
         if self.pos + batch_size > self.n:
             self.pos = -1
 
-        rval = {
-            self.name: x,
-            'group': y
-        }
-
-        return rval
+        return {self.name: x, 'group': y}

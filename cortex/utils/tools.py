@@ -90,15 +90,13 @@ def get_srng():
     '''Shared Randomstream.
 
     '''
-    srng = SRandomStreams(random.randint(0, 1000000))
-    return srng
+    return SRandomStreams(random.randint(0, 1000000))
 
 def get_trng():
     '''Normal Randomstream.
 
     '''
-    trng = RandomStreams(random.randint(0, 1000000))
-    return trng
+    return RandomStreams(random.randint(0, 1000000))
 
 def warn_kwargs(c, **kwargs):
     '''Warns of extra keyword arguments.
@@ -108,9 +106,11 @@ def warn_kwargs(c, **kwargs):
         **kwargs: extra keyword arguments.
 
     '''
-    if len(kwargs) > 0:
-        warnings.warn('Class instance %s has leftover kwargs %s'
-                       % (type(c), kwargs), RuntimeWarning)
+    if kwargs:
+        warnings.warn(
+            f'Class instance {type(c)} has leftover kwargs {kwargs}',
+            RuntimeWarning,
+        )
 
 def update_dict_of_lists(d_to_update, **d):
     '''Updates a dict of list with kwargs.
@@ -236,10 +236,7 @@ def init_rngs(model, rng=None, trng=None, **kwargs):
     if rng is None:
         rng = rng_
     model.rng = rng
-    if trng is None:
-        model.trng = RandomStreams(random.randint(0, 10000))
-    else:
-        model.trng = trng
+    model.trng = RandomStreams(random.randint(0, 10000)) if trng is None else trng
     return kwargs
 
 def logit(z):
@@ -317,9 +314,9 @@ def load_experiment(experiment_yaml):
         dict: extracted yaml.
 
     '''
-    print('Loading experiment from %s' % experiment_yaml)
+    print(f'Loading experiment from {experiment_yaml}')
     exp_dict = yaml.load(open(experiment_yaml))
-    print('Experiment hyperparams: %s' % pprint.pformat(exp_dict))
+    print(f'Experiment hyperparams: {pprint.pformat(exp_dict)}')
     return exp_dict
 
 def load_model(model_file, f_unpack=None, strict=True, **extra_args):
@@ -421,7 +418,7 @@ def flatten_dict(d):
         if isinstance(v, OrderedDict):
             new_d = flatten_dict(v)
             for k_, v_ in new_d.iteritems():
-                rval[k + '_' + k_] = v_
+                rval[f'{k}_{k_}'] = v_
         else:
             rval[k] = v
     return rval
@@ -459,7 +456,7 @@ def _p(pp, name):
 
     From Cho's arctic repo.
     '''
-    return '%s_%s'%(pp, name)
+    return f'{pp}_{name}'
 
 def ortho_weight(ndim, rng=None):
     '''Make ortho weight tensor.
@@ -505,17 +502,13 @@ def get_w_tilde(log_factor):
     log_factor = log_factor - T.log(log_factor.shape[0]).astype(floatX)
     w_norm   = log_sum_exp(log_factor, axis=0)
     log_w    = log_factor - T.shape_padleft(w_norm)
-    w_tilde  = T.exp(log_w)
-    return w_tilde
+    return T.exp(log_w)
 
 def log_mean_exp(x, axis=None, as_numpy=False):
     '''Numerically stable log(exp(x).mean()).
 
     '''
-    if as_numpy:
-        Te = np
-    else:
-        Te = T
+    Te = np if as_numpy else T
     x_max = Te.max(x, axis=axis, keepdims=True)
     return Te.log(Te.mean(Te.exp(x - x_max), axis=axis, keepdims=True)) + x_max
 
@@ -592,10 +585,10 @@ def concatenate(tensor_list, axis=0):
     offset = 0
     for tt in tensor_list:
         indices = ()
-        for k in range(axis):
+        for _ in range(axis):
             indices += (slice(None),)
         indices += (slice(offset, offset + tt.shape[axis]),)
-        for k in range(axis + 1, tensor_list[0].ndim):
+        for _ in range(axis + 1, tensor_list[0].ndim):
             indices += (slice(None),)
 
         out = T.set_subtensor(out[indices], tt)

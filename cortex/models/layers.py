@@ -175,11 +175,7 @@ class BaselineWithInput(Baseline):
             raise ValueError('Number of (external) inputs for baseline must'
                              ' match parameters')
 
-        ws = []
-        for i in xrange(len(xs)):
-            # Maybe not the most pythonic way...
-            ws.append(self.__dict__['w%d' % i])
-
+        ws = [self.__dict__['w%d' % i] for i in xrange(len(xs))]
         idb = T.sum([x.dot(W) for x, W in zip(xs, ws)], axis=0).T
         idb_c = T.zeros_like(idb) + idb
         input_centered = (
@@ -224,11 +220,7 @@ class ScalingWithInput(Layer):
             raise ValueError('Number of (external) inputs for baseline must'
                              ' match parameters')
 
-        ws = []
-        for i in xrange(len(xs)):
-            # Maybe not the most pythonic way...
-            ws.append(self.__dict__['w%d' % i])
-
+        ws = [self.__dict__['w%d' % i] for i in xrange(len(xs))]
         ids = T.sum([x.dot(W) for x, W in zip(xs, ws)], axis=0).T
         ids_c = T.zeros_like(ids) + ids
         input_scaled = input_ / ids_c

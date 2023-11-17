@@ -1,6 +1,7 @@
 '''Tests the demos.
 '''
 
+
 from os import path
 
 from cortex.demos.demos_basic import classifier
@@ -8,7 +9,7 @@ from cortex.demos.demos_basic import rbm_mnist
 from cortex.demos.demos_basic import vae
 from cortex.utils.tools import load_experiment
 
-d = path.abspath(path.dirname(path.realpath(__file__)) + '/..')
+d = path.abspath(f'{path.dirname(path.realpath(__file__))}/..')
 
 def test_classifier(epochs=5):
     yaml = path.join(d, 'classifier_mnist.yaml')

@@ -102,7 +102,7 @@ class DeepAIR(DeepIRVI):
         hs     = []
         new_qs = []
 
-        for l, (q, r) in enumerate(zip(qs, rs)):
+        for q, r in zip(qs, rs):
             h = (r <= q[None, :, :]).astype(floatX)
             hs.append(h)
 

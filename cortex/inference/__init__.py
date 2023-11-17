@@ -23,7 +23,6 @@ def resolve(model, inference_method=None, deep=False, **inference_args):
     if deep:
         if inference_method == 'momentum':
             raise NotImplementedError(inference_method)
-            return DeepMomentumGDIR(model, **inference_args)
         elif inference_method == 'rws':
             return DeepRWS(model, **inference_args)
         elif inference_method == 'air':
@@ -32,14 +31,13 @@ def resolve(model, inference_method=None, deep=False, **inference_args):
             return None
         else:
             raise ValueError(inference_method)
+    elif inference_method == 'momentum':
+        return MomentumGDIR(model, **inference_args)
+    elif inference_method == 'rws':
+        return RWS(model, **inference_args)
+    elif inference_method == 'air':
+        return AIR(model, **inference_args)
+    elif inference_method is None:
+        return None
     else:
-        if inference_method == 'momentum':
-            return MomentumGDIR(model, **inference_args)
-        elif inference_method == 'rws':
-            return RWS(model, **inference_args)
-        elif inference_method == 'air':
-            return AIR(model, **inference_args)
-        elif inference_method is None:
-            return None
-        else:
-            raise ValueError(inference_method)
+        raise ValueError(inference_method)

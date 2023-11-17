@@ -215,7 +215,7 @@ class RNN(Layer):
         else:
             assert self.input_net.dim_in == self.dim_in
             assert self.input_net.dim_out == self.dim_hs[0]
-        self.input_net.name = self.name + '_input_net'
+        self.input_net.name = f'{self.name}_input_net'
 
         if self.output_net is None:
             self.output_net = MLP(
@@ -225,11 +225,11 @@ class RNN(Layer):
                 name='output_net')
         else:
             assert self.output_net.dim_in == self.dim_hs[-1]
-        self.output_net.name = self.name + '_output_net'
+        self.output_net.name = f'{self.name}_output_net'
 
         if self.conditional is not None:
             assert self.conditional.dim_out == self.dim_hs[0]
-            self.conditional.name = self.name + '_conditional'
+            self.conditional.name = f'{self.name}_conditional'
 
         self.nets = [self.input_net, self.output_net, self.conditional]
 
@@ -285,8 +285,7 @@ class RNN(Layer):
         '''Returns parameters used for sampling.
 
         '''
-        params = self.get_params() + self.get_net_params()
-        return params
+        return self.get_params() + self.get_net_params()
 
     def get_recurrent_args(self, *args):
         '''Get the recurrent arguments for `scan`.
@@ -333,8 +332,7 @@ class RNN(Layer):
         '''
         outs, updates = self.__call__(X[:-1], h0s=h0s)
         p = outs['p']
-        energy = self.neg_log_prob(X[1:], p).sum(axis=0)
-        return energy
+        return self.neg_log_prob(X[1:], p).sum(axis=0)
 
     def neg_log_prob(self, x, p):
         '''Negative log prob function.
@@ -359,21 +357,21 @@ class RNN(Layer):
             dict: dictionary of l2 decay costs for each subnet.
 
         '''
-        cost = sum([rate * (self.__dict__['Ur%d' % i] ** 2).sum()
-                    for i in range(self.n_layers)])
-        cost += sum([rate * (self.__dict__['W%d' % i] ** 2).sum()
-                     for i in range(self.n_layers - 1)])
+        cost = sum(
+            rate * (self.__dict__['Ur%d' % i] ** 2).sum()
+            for i in range(self.n_layers)
+        )
+        cost += sum(
+            rate * (self.__dict__['W%d' % i] ** 2).sum()
+            for i in range(self.n_layers - 1)
+        )
 
         for net in self.nets:
             if net is None:
                 continue
             cost += net.l2_decay(rate)
 
-        rval = OrderedDict(
-            cost = cost
-        )
-
-        return rval
+        return OrderedDict(cost=cost)
 
     def step_sample_preact(self, *params):
         '''Returns preact for sampling step.
@@ -569,8 +567,15 @@ class RNN(Layer):
             z = T.shape_padleft(z)
             hs = [T.shape_padleft(h) for h in hs]
         else:
-            outs, updates = scan(self.step_sample, seqs, outputs_info, non_seqs,
-                                 n_steps, name=self.name+'_sampling', strict=False)
+            outs, updates = scan(
+                self.step_sample,
+                seqs,
+                outputs_info,
+                non_seqs,
+                n_steps,
+                name=f'{self.name}_sampling',
+                strict=False,
+            )
             hs = outs[:self.n_layers]
             x, p, z = outs[-3:]
 
@@ -627,20 +632,14 @@ class SimpleRNN(RNN):
         '''Energy function.
 
         '''
-        if h0 is not None:
-            h0s = [h0]
-        else:
-            h0s = None
+        h0s = [h0] if h0 is not None else None
         return super(SimpleRNN, self).energy(X, h0s=h0s)
 
     def __call__(self, x, m=None, h0=None, condition_on=None):
         '''Call function (see `RNN.__call__`).
 
         '''
-        if h0 is not None:
-            h0s = [h0]
-        else:
-            h0s = None
+        h0s = [h0] if h0 is not None else None
         return super(SimpleRNN, self).__call__(
             x, m=m, h0s=h0s, condition_on=condition_on)
 
@@ -648,8 +647,5 @@ class SimpleRNN(RNN):
         '''Sample the SimpleRNN (see `RNN.sample`).
 
         '''
-        if h0 is not None:
-            h0s = [h0]
-        else:
-            h0s = None
+        h0s = [h0] if h0 is not None else None
         return super(SimpleRNN, self).sample(x0=x0, h0s=h0s, **kwargs)

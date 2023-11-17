@@ -286,9 +286,16 @@ def set_optimizer(inputs, cost, tparams, constants, updates, extra_outs,
     updates = theano.OrderedUpdates(updates)
 
     lr = T.scalar(name='lr')
-    f_grad_shared, f_grad_updates = eval('op.' + optimizer)(
-        lr, tparams, grads, inputs, cost, extra_ups=updates,
-        extra_outs=extra_outs, **optimizer_args)
+    f_grad_shared, f_grad_updates = eval(f'op.{optimizer}')(
+        lr,
+        tparams,
+        grads,
+        inputs,
+        cost,
+        extra_ups=updates,
+        extra_outs=extra_outs,
+        **optimizer_args,
+    )
 
     return f_grad_shared, f_grad_updates, learning_args
 

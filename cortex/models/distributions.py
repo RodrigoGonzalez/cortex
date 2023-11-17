@@ -225,7 +225,7 @@ def make_conditional(C):
     class Conditional(C):
         def set_params(self): self.params = OrderedDict()
         def get_params(self): return []
-    Conditional.__name__ = Conditional.__name__ + '_' + C.__name__
+    Conditional.__name__ = f'{Conditional.__name__}_{C.__name__}'
 
     return Conditional
 
@@ -379,8 +379,7 @@ class Gaussian(Distribution):
         return z
 
     def get_center(self, p):
-        mu = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
-        return mu
+        return _slice(p, 0, p.shape[p.ndim-1] // self.scale)
 
     def split_prob(self, p):
         mu        = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
@@ -448,8 +447,7 @@ class Gaussian(Distribution):
         outs = self.split_prob(p)
         y0_mu, y0_logsigma = outs0
         y_mu, y_logsigma = outs
-        py = (y_mu - y0_mu) / T.exp(y0_logsigma)
-        return py
+        return (y_mu - y0_mu) / T.exp(y0_logsigma)
 
     def scale_for_energy_model(self, x, mu, log_sigma):
         '''Scales input for energy based models.
@@ -498,8 +496,7 @@ class Logistic(Distribution):
         return z
 
     def get_center(self, p):
-        mu = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
-        return mu
+        return _slice(p, 0, p.shape[p.ndim-1] // self.scale)
 
     def split_prob(self, p):
         mu    = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
@@ -548,8 +545,7 @@ class Logistic(Distribution):
         outs = self.split_prob(p)
         y0_mu, y0_logs = outs0
         y_mu, y_logs = outs
-        py = (y_mu - y0_mu) / T.exp(y0_logs)
-        return py
+        return (y_mu - y0_mu) / T.exp(y0_logs)
 
 
 class Laplace(Distribution):
@@ -583,8 +579,7 @@ class Laplace(Distribution):
         return z
 
     def get_center(self, p):
-        mu = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
-        return mu
+        return _slice(p, 0, p.shape[p.ndim-1] // self.scale)
 
     def split_prob(self, p):
         mu    = _slice(p, 0, p.shape[p.ndim-1] // self.scale)
@@ -633,8 +628,7 @@ class Laplace(Distribution):
         outs = self.split_prob(p)
         y0_mu, y0_logs = outs0
         y_mu, y_logs = outs
-        py = (y_mu - y0_mu) / T.exp(y0_logs)
-        return py
+        return (y_mu - y0_mu) / T.exp(y0_logs)
 
 # Various functions for distributions.
 # BERNOULLI --------------------------------------------------------------------
@@ -651,10 +645,7 @@ def _centered_binomial(trng, p, size=None):
 
 def _cross_entropy(x, p, sum_probs=True):
     energy = -x * T.log(p) - (1 - x) * T.log(1 - p)
-    if sum_probs:
-        return energy.sum(axis=energy.ndim-1)
-    else:
-        return energy
+    return energy.sum(axis=energy.ndim-1) if sum_probs else energy
 
 def _binary_entropy(p):
     entropy = -p * T.log(p) - (1 - p) * T.log(1 - p)
@@ -665,8 +656,7 @@ def _binary_entropy(p):
 def _softmax(x):
     axis = x.ndim - 1
     e_x = T.exp(x - x.max(axis=axis, keepdims=True))
-    out = e_x / e_x.sum(axis=axis, keepdims=True)
-    return out
+    return e_x / e_x.sum(axis=axis, keepdims=True)
 
 def _sample_multinomial(trng, p, size=None):
     if size is None:
@@ -676,15 +666,11 @@ def _sample_multinomial(trng, p, size=None):
 def _categorical_cross_entropy(x, p, sum_probs=True):
     p = T.clip(p, _clip, 1.0 - _clip)
     energy = T.nnet.binary_crossentropy(p, x)
-    if sum_probs:
-        return energy.sum(axis=x.ndim-1)
-    else:
-        return energy
+    return energy.sum(axis=x.ndim-1) if sum_probs else energy
 
 def _categorical_entropy(p):
     p_c = T.clip(p, _clip, 1.0 - _clip)
-    entropy = T.nnet.categorical_crossentropy(p_c, p)
-    return entropy
+    return T.nnet.categorical_crossentropy(p_c, p)
 
 # GAUSSIAN ---------------------------------------------------------------------
 
@@ -699,8 +685,7 @@ def _normal(trng, p, size=None):
 
 def _normal_prob(p):
     dim = p.shape[p.ndim-1] // 2
-    mu = _slice(p, 0, dim)
-    return mu
+    return _slice(p, 0, dim)
 
 def _neg_normal_log_prob(x, p, clip=None, sum_probs=True):
     dim = p.shape[p.ndim-1] // 2
@@ -710,10 +695,7 @@ def _neg_normal_log_prob(x, p, clip=None, sum_probs=True):
         log_sigma = T.maximum(log_sigma, clip)
     energy = 0.5 * (
         (x - mu)**2 / (T.exp(2 * log_sigma)) + 2 * log_sigma + T.log(2 * pi))
-    if sum_probs:
-        return energy.sum(axis=energy.ndim-1)
-    else:
-        return energy
+    return energy.sum(axis=energy.ndim-1) if sum_probs else energy
 
 def _normal_entropy(p, clip=None):
     dim = p.shape[p.ndim-1] // 2
@@ -739,10 +721,7 @@ def _neg_logistic_log_prob(x, p, sum_probs=True):
     mu = _slice(p, 0, dim)
     log_s = _slice(p, 1, dim)
     energy = -(x - mu) / T.exp(log_s) + log_s + 2 * T.log(1 + T.exp((x - mu) / T.exp(log_s)))
-    if sum_probs:
-        return energy.sum(axis=energy.ndim-1)
-    else:
-        return energy
+    return energy.sum(axis=energy.ndim-1) if sum_probs else energy
 
 def _logistic_entropy(p):
     dim = p.shape[p.ndim-1] // 2
@@ -766,10 +745,7 @@ def _neg_laplace_log_prob(x, p, sum_probs=True):
     mu = _slice(p, 0, dim)
     log_b = _slice(p, 1, dim)
     energy = T.log(2.0) + log_b + abs(x - mu) / T.exp(log_b)
-    if sum_probs:
-        return energy.sum(axis=energy.ndim-1)
-    else:
-        return energy
+    return energy.sum(axis=energy.ndim-1) if sum_probs else energy
 
 def _laplace_entropy(p):
     dim = p.shape[p.ndim-1] // 2

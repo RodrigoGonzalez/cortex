@@ -86,18 +86,18 @@ def load_niftis(source_dir, out_dir, name='fmri', patterns=None):
 
     if patterns is not None:
         file_lists = []
-        for i, pattern in enumerate(patterns):
+        for pattern in patterns:
             file_list = glob(path.join(source_dir, pattern))
             file_lists.append(file_list)
     else:
         file_lists = [find_niftis(source_dir)]
 
     base_file = file_lists[0][0]
-    paths_file = path.join(out_dir, name + '_file_paths.npy')
-    sites_file = path.join(out_dir, name + '_sites.npy')
-    mask_file = path.join(out_dir, name + '_mask.npy')
-    yaml_file = path.join(out_dir, name + '.yaml')
-    tmp_dir = path.join(out_dir, name + '_tmp')
+    paths_file = path.join(out_dir, f'{name}_file_paths.npy')
+    sites_file = path.join(out_dir, f'{name}_sites.npy')
+    mask_file = path.join(out_dir, f'{name}_mask.npy')
+    yaml_file = path.join(out_dir, f'{name}.yaml')
+    tmp_dir = path.join(out_dir, f'{name}_tmp')
     if not path.isdir(tmp_dir):
         os.mkdir(tmp_dir)
 
@@ -157,7 +157,7 @@ def main(args=None):
     out_dir = path.abspath(args.out_path)
 
     if not path.isdir(out_dir):
-        raise ValueError('No output directory found (%s)' % out_dir)
+        raise ValueError(f'No output directory found ({out_dir})')
 
     load_niftis(source_dir, out_dir, args.name, patterns=args.patterns)
 
@@ -170,6 +170,6 @@ if __name__ == '__main__':
     out_dir = path.abspath(args.out_path)
 
     if not path.isdir(out_dir):
-        raise ValueError('No output directory found (%s)' % out_dir)
+        raise ValueError(f'No output directory found ({out_dir})')
 
     load_niftis(source_dir, out_dir, args.name, patterns=args.patterns)

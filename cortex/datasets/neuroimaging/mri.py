@@ -241,8 +241,7 @@ class MRI(BasicDataset):
             nipy.core.api.Image
 
         '''
-        image = Image.from_image(base_nifti, data=X)
-        return image
+        return Image.from_image(base_nifti, data=X)
 
     def save_niftis(self, X):
         '''Save nifti files from array.

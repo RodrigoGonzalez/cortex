@@ -50,7 +50,7 @@ def resolve(c):
 
     C = r_dict.get(c, None)
     if C is None:
-        raise ValueError('Dataset %s not supported' %c)
+        raise ValueError(f'Dataset {c} not supported')
 
     return C
 
@@ -101,11 +101,7 @@ def load_data(dataset=None,
     if resolve_dataset is None:
         resolve_dataset = resolve
 
-    if isinstance(dataset, str):
-        C = resolve_dataset(dataset)
-    else:
-        C = dataset
-
+    C = resolve_dataset(dataset) if isinstance(dataset, str) else dataset
     if train_batch_size is not None:
         train = C(batch_size=train_batch_size,
                   mode='train',
@@ -323,11 +319,7 @@ class BasicDataset(Dataset):
         self.n = None
 
         self.dims = dict()
-        if distributions is None:
-            self.distributions = dict()
-        else:
-            self.distributions = distributions
-
+        self.distributions = dict() if distributions is None else distributions
         if labels is None: labels = []
 
         for k, v in self.data.iteritems():
@@ -341,13 +333,12 @@ class BasicDataset(Dataset):
 
             if self.n is None:
                 self.n = v.shape[0]
-            else:
-                if v.shape[0] != self.n:
-                    raise ValueError('All input arrays must have the same'
-                                    'number of samples (shape[0]), '
-                                    '(%d vs %d)' % (self.n, v.shape[0]))
+            elif v.shape[0] != self.n:
+                raise ValueError('All input arrays must have the same'
+                                'number of samples (shape[0]), '
+                                '(%d vs %d)' % (self.n, v.shape[0]))
             self.dims[k] = v.shape[1]
-            if not k in self.distributions.keys():
+            if k not in self.distributions.keys():
                 self.distributions[k] = 'binomial'
 
         self.label_nums = self.data[labels].sum(axis=0)

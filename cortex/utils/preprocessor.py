@@ -27,15 +27,16 @@ class Preprocessor(object):
         '''
         self.processes = OrderedDict()
         for proc in proc_list:
-            if not isinstance(proc, list):
-                if proc not in self.keys:
-                    raise ValueError('Processing step, %s, not supported' % proc)
-                self.processes[proc] = True
-            else:
+            if isinstance(proc, list):
                 assert len(proc) == 2
                 if proc[0] not in self.keyvals:
-                    raise ValueError('Processing step, %s, not supported' % proc[0])
+                    raise ValueError(f'Processing step, {proc[0]}, not supported')
                 self.processes[proc[0]] = proc[1]
+
+            elif proc not in self.keys:
+                raise ValueError(f'Processing step, {proc}, not supported')
+            else:
+                self.processes[proc] = True
 
     def center(self, X, data_iter=None):
         '''Center input.'''

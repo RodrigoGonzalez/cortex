@@ -134,7 +134,7 @@ class GRU(RNN):
         else:
             assert self.input_net_aux.dim_in == self.dim_in
             assert self.input_net_aux.dim_out == 2 * self.dim_hs[0]
-        self.input_net_aux.name = self.name + '_input_net_aux'
+        self.input_net_aux.name = f'{self.name}_input_net_aux'
 
         self.nets.append(self.input_net_aux)
 
@@ -254,5 +254,4 @@ class GRU(RNN):
 
         if condition_on is not None:
             i += condition_on
-        seqs = [a, i]
-        return seqs
+        return [a, i]

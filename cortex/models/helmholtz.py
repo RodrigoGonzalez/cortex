@@ -160,10 +160,7 @@ class Helmholtz(Layer):
                 prior = 'binomial'
             else:
                 prior = rec_args['distribution']
-        if isinstance(prior, Distribution):
-            PC = prior
-        else:
-            PC = resolve_prior(prior)
+        PC = prior if isinstance(prior, Distribution) else resolve_prior(prior)
         prior_model = PC(dim_h)
 
         # Forming the recogntion network, aka posterior
@@ -180,12 +177,9 @@ class Helmholtz(Layer):
         gen_args['dim_in'] = dim_h
 
         t = gen_args.get('type', None)
-        if t == 'darn':
-            GC = DARN
-        else:
-            GC = resolve_mlp(t)
+        GC = DARN if t == 'darn' else resolve_mlp(t)
         if t == 'dag':
-            for out in gen_args['graph']['outputs']:
+            for _ in gen_args['graph']['outputs']:
                 gen_args['graph']['outs'][output_name] = dict(
                     dim=dims[output_name],
                     distribution=distributions[output_name])
@@ -198,9 +192,9 @@ class Helmholtz(Layer):
 
     def set_params(self):
         self.params = OrderedDict()
-        self.prior.name = self.name + '_' + self.prior.name
-        self.posterior.name = self.name + '_posterior'
-        self.conditional.name = self.name + '_conditional'
+        self.prior.name = f'{self.name}_{self.prior.name}'
+        self.posterior.name = f'{self.name}_posterior'
+        self.conditional.name = f'{self.name}_conditional'
 
     def set_tparams(self):
         tparams = super(Helmholtz, self).set_tparams()
@@ -213,10 +207,11 @@ class Helmholtz(Layer):
     # Fetch params -------------------------------------------------------------
     def get_params(self):
         '''Get model parameters.'''
-        params = (self.prior.get_params()
-                  + self.conditional.get_params()
-                  + self.posterior.get_params())
-        return params
+        return (
+            self.prior.get_params()
+            + self.conditional.get_params()
+            + self.posterior.get_params()
+        )
 
     def get_prior_params(self, *params):
         '''Get the prior params for scan.'''
@@ -239,8 +234,7 @@ class Helmholtz(Layer):
     def generate_from_latent(self, h):
         '''Generates an image from a latent state.'''
         py = self.conditional.feed(h)
-        center = self.conditional.get_center(py)
-        return center
+        return self.conditional.get_center(py)
 
     def visualize_latents(self):
         '''Visualizes influence of latent variables on input space.
@@ -251,8 +245,7 @@ class Helmholtz(Layer):
         h0, h = self.prior.generate_latent_pair()
         p0 = self.conditional.feed(h0)
         p = self.conditional.feed(h)
-        py = self.conditional.distribution.visualize(p0, p)
-        return py
+        return self.conditional.distribution.visualize(p0, p)
 
     # Misc --------------------------------------------------------------------
     def get_center(self, p):
@@ -288,13 +281,11 @@ class Helmholtz(Layer):
         rec_l2_cost = self.posterior.l2_decay(rate)
         gen_l2_cost = self.conditional.l2_decay(rate)
 
-        rval = OrderedDict(
+        return OrderedDict(
             rec_l2_cost=rec_l2_cost,
             gen_l2_cost=gen_l2_cost,
-            cost = rec_l2_cost + gen_l2_cost
+            cost=rec_l2_cost + gen_l2_cost,
         )
-
-        return rval
 
     # --------------------------------------------------------------------
     def p_y_given_h(self, h, *params):
@@ -371,18 +362,17 @@ class Helmholtz(Layer):
             KL_term = prior_energy - q_entropy
 
         # If we pass the gradients we don't want to include the KL(q_k||q_0)
-        if not pass_gradients:
-            if self.posterior.distribution.has_kl and not reweight and not reweight_gen_only:
-                KL_qk_q0 = self.posterior.distribution.step_kl_divergence(
-                    qk, *self.posterior.distribution.split_prob(q0))
-                results['KL(q_k||q_0)'] = KL_qk_q0
-                posterior_term = KL_qk_q0
-            else:
-                results['-log q(h)'] = -log_qh0.mean()
-                posterior_term = -log_qh0
-        else:
+        if pass_gradients:
             posterior_term = T.zeros_like(log_qh0)
 
+        elif self.posterior.distribution.has_kl and not reweight and not reweight_gen_only:
+            KL_qk_q0 = self.posterior.distribution.step_kl_divergence(
+                qk, *self.posterior.distribution.split_prob(q0))
+            results['KL(q_k||q_0)'] = KL_qk_q0
+            posterior_term = KL_qk_q0
+        else:
+            results['-log q(h)'] = -log_qh0.mean()
+            posterior_term = -log_qh0
         lower_bound = -(recon_term + KL_term).mean()
 
         w_tilde = get_w_tilde(log_py_h + log_ph - log_qhk)

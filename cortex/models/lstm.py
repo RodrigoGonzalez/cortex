@@ -85,7 +85,7 @@ class LSTM(RNN):
         else:
             assert self.input_net.dim_in == self.dim_in
             assert self.input_net.dim_out == 4 * self.dim_h
-        self.input_net.name = self.name + '_input_net'
+        self.input_net.name = f'{self.name}_input_net'
 
         if self.output_net is None:
             self.output_net = MLP(
@@ -95,11 +95,11 @@ class LSTM(RNN):
                 name='output_net')
         else:
             assert self.output_net.dim_in == self.dim_h
-        self.output_net.name = self.name + '_output_net'
+        self.output_net.name = f'{self.name}_output_net'
 
         if self.conditional is not None:
             assert self.conditional.dim_out == self.dim_h
-            self.conditional.name = self.name + '_conditional'
+            self.conditional.name = f'{self.name}_conditional'
 
         self.nets = [self.input_net, self.output_net, self.conditional]
 
@@ -126,8 +126,7 @@ class LSTM(RNN):
         a = self.input_net.step_preact(x, *i_params)
         if condition_on is not None:
             a += condition_on
-        seqs = [a]
-        return seqs
+        return [a]
 
     def _step(self, y, h_, c_, Ur):
         preact = T.dot(h_, Ur) + y
@@ -150,9 +149,10 @@ class LSTM(RNN):
             sequences=seqs,
             outputs_info=outputs_info,
             non_sequences=non_seqs,
-            name=self.name + '_recurrent_steps',
+            name=f'{self.name}_recurrent_steps',
             n_steps=n_steps,
-            strict=True)
+            strict=True,
+        )
 
         o_params    = self.get_output_args(*params)
         out_net_out = self.output_net.step_call(h, *o_params)
@@ -185,8 +185,15 @@ class LSTM(RNN):
         if debug:
             return self.step_sample(h0, x0, *self.get_sample_params())
 
-        outs = scan(step, seqs, outputs_info, non_seqs, n_steps,
-                    name=self.name+'_sampling', strict=False)
+        outs = scan(
+            step,
+            seqs,
+            outputs_info,
+            non_seqs,
+            n_steps,
+            name=f'{self.name}_sampling',
+            strict=False,
+        )
         (h, c, x, p), updates = outs
 
         x = concatenate([x0[None, :, :], x])

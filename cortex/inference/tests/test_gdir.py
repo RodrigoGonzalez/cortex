@@ -16,8 +16,7 @@ def test_build_gdir(model=None, **inference_args):
     if model is None:
         data_iter = Euclidean(batch_size=27, dim_in=17)
         model = test_vae.test_build_GBN(dim_in=data_iter.dims[data_iter.name])
-    gdir = MomentumGDIR(model, **inference_args)
-    return gdir
+    return MomentumGDIR(model, **inference_args)
 
 def test_infer():
     data_iter = Euclidean(batch_size=27, dim_in=17)

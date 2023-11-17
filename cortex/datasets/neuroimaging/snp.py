@@ -61,9 +61,9 @@ class SNP(BasicDataset):
         '''
         from utils.tools import get_paths
         data_path = get_paths()['$snp_data']
-        print('Loading genetic data from %s' % data_path)
-        X = loadmat(data_path + '/' + source['snp'])
-        Y = loadmat(data_path + '/' + source['label'])
+        print(f'Loading genetic data from {data_path}')
+        X = loadmat(f'{data_path}/' + source['snp'])
+        Y = loadmat(f'{data_path}/' + source['label'])
         X = np.float32(X[X.keys()[2]])
         Y = np.float32(Y[Y.keys()[0]])
         Y.resize(max(Y.shape,))

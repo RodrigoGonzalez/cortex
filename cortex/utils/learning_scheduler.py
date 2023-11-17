@@ -41,7 +41,7 @@ class Scheduler(object):
                 learning_rate, decay_rate, schedule = unpack(**v)
 
                 if learning_rate is None:
-                    raise ValueError('Must includes learning rate for %s' % k)
+                    raise ValueError(f'Must includes learning rate for {k}')
 
                 if (decay_rate is not None) and (schedule is not None):
                     raise ValueError('Provide either decay rate OR scheduler OR neither'

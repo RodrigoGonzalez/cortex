@@ -518,8 +518,8 @@ class DeepIRVI(object):
         results = OrderedDict()
         for k, v in full_results.iteritems():
             results[k] = v[-1]
-            results[k + '0'] = v[0]
-            results['d_' + k] = v[0] - v[-1]
+            results[f'{k}0'] = v[0]
+            results[f'd_{k}'] = v[0] - v[-1]
 
         return results, samples, full_results, updates
 

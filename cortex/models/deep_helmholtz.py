@@ -121,10 +121,7 @@ class DeepHelmholtz(Layer):
                 prior = 'binomial'
             else:
                 prior = rec_args['distribution']
-        if isinstance(prior, Distribution):
-            PC = prior
-        else:
-            PC = resolve_prior(prior)
+        PC = prior if isinstance(prior, Distribution) else resolve_prior(prior)
         prior_model = PC(dim_hs[-1])
 
         posteriors = []
@@ -134,11 +131,7 @@ class DeepHelmholtz(Layer):
         output_name = gen_args.get('output')
 
         for l, _ in enumerate(dim_hs):
-            if l == 0:
-                dim_in = dims[input_name]
-            else:
-                dim_in = dim_hs[l - 1]
-
+            dim_in = dims[input_name] if l == 0 else dim_hs[l - 1]
             dim_out = dim_hs[l]
 
             # Forming the generation network for this layer
@@ -146,10 +139,7 @@ class DeepHelmholtz(Layer):
             gen_args['dim_out'] = dim_in
 
             t = gen_args.get('type', None)
-            if t == 'darn':
-                GC = DARN
-            else:
-                GC = resolve_mlp(t)
+            GC = DARN if t == 'darn' else resolve_mlp(t)
             if l == 0:
                 gen_args['distribution'] = distributions[output_name]
             else:
@@ -173,8 +163,8 @@ class DeepHelmholtz(Layer):
         self.params = OrderedDict()
         for l, dim_h in enumerate(self.dim_hs):
             if l == 0:
-                self.posteriors[l].name = self.name + '_posterior'
-                self.conditionals[l].name = self.name + '_conditional'
+                self.posteriors[l].name = f'{self.name}_posterior'
+                self.conditionals[l].name = f'{self.name}_conditional'
             else:
                 self.posteriors[l].name = self.name + '_posterior%d' % l
                 self.conditionals[l].name = self.name + '_conditional%d' % l
@@ -242,8 +232,7 @@ class DeepHelmholtz(Layer):
             p = self.conditionals[l].feed(h)
             h, _ = self.conditionals[l].sample(p)
 
-        center = self.get_center(p)
-        return center
+        return self.get_center(p)
 
     def visualize_latents(self):
         h0, h = self.prior.generate_latent_pair()
@@ -256,8 +245,7 @@ class DeepHelmholtz(Layer):
             h, _ = self.conditionals[l].sample(p)
             h0 = h0[0]
             h = h[0]
-        py = self.conditionals[0].distribution.visualize(p0, p)
-        return py
+        return self.conditionals[0].distribution.visualize(p0, p)
 
     def l2_decay(self, rate):
         rec_l2_cost = T.constant(0.).astype(floatX)
@@ -267,13 +255,11 @@ class DeepHelmholtz(Layer):
             rec_l2_cost += self.posteriors[l].l2_decay(rate)
             gen_l2_cost += self.conditionals[l].l2_decay(rate)
 
-        rval = OrderedDict(
+        return OrderedDict(
             rec_l2_cost=rec_l2_cost,
             gen_l2_cost=gen_l2_cost,
-            cost = rec_l2_cost + gen_l2_cost
+            cost=rec_l2_cost + gen_l2_cost,
         )
-
-        return rval
 
     # --------------------------------------------------------------------------
     def p_y_given_h(self, h, level, *params):

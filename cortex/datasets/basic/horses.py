@@ -116,11 +116,7 @@ class Horses(object):
 
     def show(self, image, tshape, transpose=False):
         fshape = self.dims
-        if transpose:
-            X = image
-        else:
-            X = image.T
-
+        X = image if transpose else image.T
         return PIL.Image.fromarray(tile_raster_images(
             X=X, img_shape=fshape, tile_shape=tshape,
             tile_spacing=(1, 1)))

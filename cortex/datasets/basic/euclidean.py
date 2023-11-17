@@ -46,12 +46,10 @@ class Euclidean(Dataset):
         f = -(G * d_r / d_cb[:, :, None])
         c = (d < r).astype(intX)
         f = f * c[:, :, None]
-        f = f.sum(axis=0)
-
-        return f
+        return f.sum(axis=0)
 
     def make_circle(self, r=0.3, G=0.05):
-        for k in xrange(10):
+        for _ in xrange(10):
             x = self.X[:, 0] - 0.5
             y = self.X[:, 1] - 0.5
             alpha = np.sqrt(x ** 2 + y ** 2) / r
@@ -61,7 +59,7 @@ class Euclidean(Dataset):
             self.X = np.clip(self.X, 0, 1)
 
     def make_spiral(self, r=0.25, G=0.0001):
-        for k in range(10):
+        for _ in range(10):
             x = self.X[:, 0] - 0.5
             y = self.X[:, 1] - 0.5
             theta = np.arctan2(x, y)
@@ -107,7 +105,7 @@ class Euclidean(Dataset):
     def make_fibrous(self, n_points=40):
         y = self.rng.uniform(size=(n_points, self.X.shape[1])).astype(floatX)
 
-        for k in xrange(10):
+        for _ in xrange(10):
             f = self.gravity(self.X, y)
             self.X += f
             self.X = np.clip(self.X, 0, 1)
@@ -117,8 +115,7 @@ class Euclidean(Dataset):
         self.X = self.X[rnd_idx, :]
 
     def get_data(self, n_points, dims):
-        x = self.rng.uniform(size=(n_points, dims)).astype(floatX)
-        return x
+        return self.rng.uniform(size=(n_points, dims)).astype(floatX)
 
     def next(self, batch_size=None):
         if batch_size is None:
@@ -158,7 +155,7 @@ class Euclidean(Dataset):
             ax.add_collection(self.collection)
 
 
-        ax.text(x[0], y[0], str('start'), transform=ax.transAxes)
+        ax.text(x[0], y[0], 'start', transform=ax.transAxes)
         ax.axis([-0.2, 1.2, -0.2, 1.2])
         fig = plt.gcf()
 
